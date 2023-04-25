@@ -7,10 +7,10 @@ public class FastRpcRequest implements Request{
     private String interfaceName;
     private String methodName;
     private String returnType;
-    private Class[] paramsTypes;
+    private String[] paramsTypes;
     private Object[] paramsValues;
 
-    public FastRpcRequest(String interfaceName, String methodName, String returnType, Class[] paramsTypes, Object[] paramsValues) {
+    public FastRpcRequest(String interfaceName, String methodName, String returnType, String[] paramsTypes, Object[] paramsValues) {
         this.interfaceName = interfaceName;
         this.methodName = methodName;
         this.returnType = returnType;
@@ -24,7 +24,7 @@ public class FastRpcRequest implements Request{
     }
 
     @Override
-    public Class[] getParamsTypes() {
+    public String[] getParamsTypes() {
         return this.paramsTypes;
     }
 

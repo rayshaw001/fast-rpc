@@ -28,4 +28,13 @@ public class FastRpcResponse implements Response{
     public String getResponseType() {
         return this.responseType;
     }
+
+    @Override
+    public String toString() {
+        return "FastRpcResponse{" +
+                "msgToLog='" + msgToLog + '\'' +
+                ", responseContent=" + responseContent +
+                ", responseType='" + responseType + '\'' +
+                '}';
+    }
 }
