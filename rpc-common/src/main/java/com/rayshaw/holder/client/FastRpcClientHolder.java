@@ -51,7 +51,7 @@ public class FastRpcClientHolder {
     }
 
     private void loadFromZk(String zkPath) throws Exception{
-        ZooKeeper zkClient = new ZooKeeper("10.221.128.100:9999", 20000, null);
+        ZooKeeper zkClient = new ZooKeeper("localhost:9999", 20000, null);
         List<String> servers = zkClient.getChildren(zkPath, (watchedEvent) -> {
             if(watchedEvent.getType() == NodeChildrenChanged) {
                 try {

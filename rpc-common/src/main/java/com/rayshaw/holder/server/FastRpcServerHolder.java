@@ -103,7 +103,7 @@ public class FastRpcServerHolder {
     }
 
     private void registerToZk(String zkPath) throws Exception{
-        ZooKeeper zkClient = new ZooKeeper("10.221.128.100:9999", 20000, null);
+        ZooKeeper zkClient = new ZooKeeper("localhost:9999", 20000, null);
         InputStream stream = FastRpcServerHolder.class.getClassLoader().getResourceAsStream("application.properties");
         Properties properties = new Properties();
         properties.load(stream);
