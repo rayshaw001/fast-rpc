@@ -2,6 +2,7 @@ package com.rayshaw.holder.server;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.Gson;
+import com.google.gson.ToNumberPolicy;
 import com.rayshaw.message.FastRpcRequest;
 import com.rayshaw.message.FastRpcResponse;
 import com.rayshaw.message.Response;
@@ -17,7 +18,7 @@ public class FastRcpServerHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(FastRcpServerHandler.class);
 
-    private static final Gson GSON_TOOL = new GsonBuilder().create();
+    private static final Gson GSON_TOOL = new GsonBuilder().serializeNulls().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
 
     private FastRpcServerHolder holder;
 
@@ -32,14 +33,18 @@ public class FastRcpServerHandler extends ChannelInboundHandlerAdapter {
         long start = System.currentTimeMillis();
 
         FastRpcRequest request = GSON_TOOL.fromJson(o.toString().replace("\n\r", ""), FastRpcRequest.class);
-        Class[] types = Arrays.stream(request.getParamsTypes()).map(typeString -> {
-            try {
-                return Class.forName(typeString);
-            } catch (ClassNotFoundException e) {
-                logger.error("conver type error", e);
-            }
-            return null;
-        }).collect(Collectors.toList()).toArray(new Class[0]);
+
+        Class[] types = null;
+        if(request.getParamsTypes() != null) {
+            Arrays.stream(request.getParamsTypes()).map(typeString -> {
+                try {
+                    return Class.forName(typeString);
+                } catch (ClassNotFoundException e) {
+                    logger.error("conver type error", e);
+                }
+                return null;
+            }).collect(Collectors.toList()).toArray(new Class[0]);
+        }
         Object object = holder.invoke(request.getInterfaceName(), request.getMethod(), request.getParamsValues(), types);
         Response response = new FastRpcResponse("no msg", object, object.getClass().getName());
         String result = GSON_TOOL.toJson(response, response.getClass());

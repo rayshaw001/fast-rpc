@@ -51,7 +51,7 @@ public class FastRpcClientHolder {
     }
 
     private void loadFromZk(String zkPath) throws Exception{
-        ZooKeeper zkClient = new ZooKeeper("localhost:9999", 20000, null);
+        ZooKeeper zkClient = new ZooKeeper("10.221.128.100:9999", 20000, null);
         List<String> servers = zkClient.getChildren(zkPath, (watchedEvent) -> {
             if(watchedEvent.getType() == NodeChildrenChanged) {
                 try {
@@ -108,7 +108,8 @@ public class FastRpcClientHolder {
         CompletableFuture.runAsync(() -> {
             try {
                 Random random = new Random();
-                Bootstrap bs = this.clientBootStraps.get(random.nextInt(1));
+                Bootstrap bs = this.clientBootStraps.get(random.nextInt(2));
+                logger.error(bs.config().remoteAddress().toString());
                 bs.handler(fastRpcClientInitializer);
                 ChannelFuture future = bs.connect().sync();
                 Channel ch = future.channel();
@@ -128,7 +129,7 @@ public class FastRpcClientHolder {
 //        return "result";
     }
 
-    private void shutdown() {
+    public void shutdown() {
         for(Bootstrap bs: this.clientBootStraps) {
             bs.group().shutdownGracefully();
         }

@@ -1,7 +1,6 @@
 package com.rayshaw.holder.client;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import com.rayshaw.message.FastRpcResponse;
 import com.rayshaw.message.Response;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,13 +13,15 @@ import io.netty.handler.codec.string.StringEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Type;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 
 public class FastRpcClientInitializer extends ChannelInitializer<SocketChannel> {
 
 
-    private static Gson GSON_TOOL = new GsonBuilder().create();
+    private static final Gson GSON_TOOL = new GsonBuilder().serializeNulls().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
+
 
     private static Logger logger = LoggerFactory.getLogger(FastRpcClientInitializer.class);
 

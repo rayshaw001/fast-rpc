@@ -11,5 +11,13 @@ public class FastRpcClientApplication {
         SampleServiceInterface sampleServiceInterface = (SampleServiceInterface)fastRpcClientHolder.getInterfaceProxy(SampleServiceInterface.class);
         String result = sampleServiceInterface.helloWorld("he");
         System.out.println(result);
+//        fastRpcClientHolder.shutdown();
+//        int a = sampleServiceInterface.helloWorld("1+1","=2");
+//        System.out.println(a);
+
+        result = sampleServiceInterface.helloWorld();
+        System.out.println(result);
+
+        fastRpcClientHolder.shutdown();
     }
 }

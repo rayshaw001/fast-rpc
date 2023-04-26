@@ -1,13 +1,13 @@
 package com.rayshaw.holder.client;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import com.rayshaw.message.FastRpcRequest;
 import com.rayshaw.message.Request;
 import com.rayshaw.message.Response;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -21,14 +21,18 @@ public class FastRpcClientProxy implements InvocationHandler {
         this.holder = holder;
     }
 
-    private static final Gson GSON_TOOL = new GsonBuilder().create();
+    private static final Gson GSON_TOOL = new GsonBuilder().serializeNulls().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Request request = tranformToRequest(method, args);
         String requesString = GSON_TOOL.toJson(request);
         CompletableFuture<Response> result = holder.sendRequest(requesString);
 //        return "null";
+
         Response response = result.get();
+        if(response.getResposeContent() instanceof Long && "java.lang.Integer".equals(response.getResponseType())){
+            return ((Long)response.getResposeContent()).intValue();
+        }
         return Class.forName(response.getResponseType()).cast(response.getResposeContent());
 
     }
