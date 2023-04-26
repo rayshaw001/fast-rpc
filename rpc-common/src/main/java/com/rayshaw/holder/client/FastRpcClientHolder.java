@@ -1,17 +1,27 @@
 package com.rayshaw.holder.client;
 
+import com.rayshaw.message.Response;
 import com.rayshaw.service.SampleServiceInterface;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.apache.zookeeper.Watcher.Event.EventType.NodeChildrenChanged;
 
@@ -27,8 +37,10 @@ public class FastRpcClientHolder {
 
     private List<Bootstrap> clientBootStraps;
 
+    private Lock resultLock = new ReentrantLock();
+
 //    public FastRpcClientHolder(){}
-    public FastRpcClientHolder(String zkPath, Class[] clazzz) throws Exception {
+    public FastRpcClientHolder(String zkPath, Class... clazzz) throws Exception {
 //        // 1. 加载zk 配置
         loadFromZk(zkPath);
 //        // 2. 创建代理对象
@@ -83,7 +95,6 @@ public class FastRpcClientHolder {
             bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
             //绑定远程服务地址与端口
             bootstrap.remoteAddress(ip, port);
-            bootstrap.handler(new FastRpcClientInitializer());
 
             clientBootStraps.add(bootstrap);
         }
@@ -91,14 +102,30 @@ public class FastRpcClientHolder {
         this.clientBootStraps = clientBootStraps;
     }
 
-    public Object sendRequest(String requestString) throws Exception {
-        Random random = new Random();
-        Bootstrap bs = this.clientBootStraps.get(random.nextInt(1));
-        ChannelFuture future = bs.connect().sync();
-        ChannelFuture f = future.channel().writeAndFlush(requestString);
+    public CompletableFuture<Response> sendRequest(String requestString) throws Exception {
+        final FastRpcClientInitializer fastRpcClientInitializer = new FastRpcClientInitializer();
 
+        CompletableFuture.runAsync(() -> {
+            try {
+                Random random = new Random();
+                Bootstrap bs = this.clientBootStraps.get(random.nextInt(1));
+                bs.handler(fastRpcClientInitializer);
+                ChannelFuture future = bs.connect().sync();
+                Channel ch = future.channel();
+                ChannelFuture f = ch.writeAndFlush(requestString);
+            } catch (Exception e) {
+                logger.error("error:",e);
+            } finally {
+
+            }
+        });
+//        f.sync();
+//        f.get();
+        CompletableFuture<Response> future1 = CompletableFuture.supplyAsync(() -> fastRpcClientInitializer.getResult());
+
+        return future1;
         // to do ...
-        return f.get();
+//        return "result";
     }
 
     private void shutdown() {

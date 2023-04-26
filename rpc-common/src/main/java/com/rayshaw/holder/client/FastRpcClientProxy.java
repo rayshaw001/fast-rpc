@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.rayshaw.message.FastRpcRequest;
 import com.rayshaw.message.Request;
+import com.rayshaw.message.Response;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class FastRpcClientProxy implements InvocationHandler {
@@ -24,7 +26,10 @@ public class FastRpcClientProxy implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Request request = tranformToRequest(method, args);
         String requesString = GSON_TOOL.toJson(request);
-        return holder.sendRequest(requesString);
+        CompletableFuture<Response> result = holder.sendRequest(requesString);
+//        return "null";
+        Response response = result.get();
+        return Class.forName(response.getResponseType()).cast(response.getResposeContent());
 
     }
 

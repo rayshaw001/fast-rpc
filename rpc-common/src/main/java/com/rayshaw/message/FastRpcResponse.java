@@ -1,7 +1,5 @@
 package com.rayshaw.message;
 
-import java.util.Map;
-
 public class FastRpcResponse implements Response{
 
     private String msgToLog;
